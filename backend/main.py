@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 from services.ai_service import analyze_item_with_ai
+from services.search_service import search_global_marketprices
 
 # Load environment variables
 load_dotenv()
@@ -32,7 +33,7 @@ def root():
 async def analyze_item(file: UploadFile = File(...)):
     """
     Receives an uploaded image, processes it through Gemini Vision AI,
-    and returns structured product intelligence data.
+    fetches global prices via SerpAPI, and returns structured intelligence data.
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(
@@ -42,11 +43,18 @@ async def analyze_item(file: UploadFile = File(...)):
     # Read image bytes in memory
     image_bytes = await file.read()
 
-    # Pass image bytes and mime type to the AI vision service
+    # 1. Pass image bytes and mime type to the AI vision service
     ai_result = analyze_item_with_ai(image_bytes, file.content_type)
 
     if "error" in ai_result:
         raise HTTPException(status_code=500, detail=ai_result["error"])
+
+    # 2. Extract item name and fetch global marketplace pricing
+    item_name = ai_result.get("item_name", "Unknown Item")
+    pricing_results = search_global_marketprices(item_name)
+
+    # Attach global prices to the final response data dictionary
+    ai_result["global_prices"] = pricing_results
 
     return {
         "status": "success",

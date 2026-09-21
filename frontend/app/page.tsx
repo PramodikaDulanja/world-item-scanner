@@ -137,9 +137,35 @@ export default function Home() {
             </div>
 
             {/* Global Pricing Matrix Placeholder (Next step: adding SerpAPI web search) */}
+            {/* Global Pricing Matrix */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
               <h3 className="text-lg font-bold text-gray-800">Global Store & Marketplace Results</h3>
-              <p className="text-xs text-gray-500">Live international web search and price aggregation are connecting next.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b text-xs text-gray-400 uppercase tracking-wider">
+                      <th className="py-3 px-4">Platform / Store</th>
+                      <th className="py-3 px-4">Listing Price</th>
+                      <th className="py-3 px-4">Converted Value</th>
+                      <th className="py-3 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-sm">
+                    {result.global_prices?.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="py-3 px-4 font-medium text-gray-800">{item.store}</td>
+                        <td className="py-3 px-4 text-gray-600">{item.price}</td>
+                        <td className="py-3 px-4 font-semibold text-blue-600">{item.localConverted}</td>
+                        <td className="py-3 px-4 text-right">
+                          <a href={item.link} target="_blank" rel="noreferrer" className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100 transition">
+                            View Listing ↗
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
