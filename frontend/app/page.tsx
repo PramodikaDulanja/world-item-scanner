@@ -7,35 +7,45 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setResult(null);
+      setError(null);
     }
   };
 
   const handleScan = async () => {
     if (!selectedFile) return;
     setLoading(true);
+    setError(null);
 
-    // Simulate backend response for UI demonstration purposes
-    setTimeout(() => {
-      setResult({
-        itemName: "Vintage 1970s Mechanical Diver Watch",
-        confidence: "98.4%",
-        era: "1970 - 1975",
-        materials: ["Stainless Steel Case", "Acrylic Crystal", "Automatic Mechanical Movement"],
-        authenticityNote: "Low counterfeit risk. Verified against vintage collector databases.",
-        globalPrices: [
-          { store: "Chrono24 (Europe)", price: "€450.00", localConverted: "$485.00 USD", link: "#" },
-          { store: "eBay Global (USA)", price: "$420.00 USD", localConverted: "$420.00 USD", link: "#" },
-          { store: "Yahoo Auctions (Japan)", price: "¥65,000 JPY", localConverted: "$430.00 USD", link: "#" }
-        ]
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
+        method: 'POST',
+        body: formData,
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to analyze image');
+      }
+
+      // Maps the live backend JSON fields to your dashboard state
+      setResult(data.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -68,7 +78,7 @@ export default function Home() {
               <img src={previewUrl} alt="Item Preview" className="h-64 object-contain rounded-xl border border-gray-200 shadow-sm" />
               <div className="flex gap-4">
                 <button 
-                  onClick={() => { setPreviewUrl(null); setSelectedFile(null); setResult(null); }}
+                  onClick={() => { setPreviewUrl(null); setSelectedFile(null); setResult(null); setError(null); }}
                   className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                 >
                   Choose Another
@@ -80,11 +90,11 @@ export default function Home() {
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                       </svg>
-                      Scanning Global Markets...
+                      Analyzing with Gemini AI...
                     </>
                   ) : 'Scan Globally'}
                 </button>
@@ -92,6 +102,13 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            ❌ Error: {error}
+          </div>
+        )}
 
         {/* Results Dashboard Section */}
         {result && (
@@ -102,51 +119,27 @@ export default function Home() {
                 <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                   Match Confidence: {result.confidence}
                 </span>
-                <h2 className="text-2xl font-bold text-gray-800">{result.itemName}</h2>
+                <h2 className="text-2xl font-bold text-gray-800">{result.item_name}</h2>
                 <p className="text-sm text-gray-600"><strong className="text-gray-800">Estimated Era:</strong> {result.era}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{result.description}</p>
                 <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
-                  🛡️ {result.authenticityNote}
+                  🛡️ {result.authenticity_notes}
                 </div>
               </div>
               <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <h3 className="font-semibold text-sm text-gray-700">Material Composition</h3>
                 <ul className="space-y-1 text-sm text-gray-600">
-                  {result.materials.map((mat, idx) => (
+                  {result.materials?.map((mat, idx) => (
                     <li key={idx} className="flex items-center gap-2">✓ {mat}</li>
                   ))}
                 </ul>
               </div>
             </div>
 
-            {/* Global Pricing Matrix */}
+            {/* Global Pricing Matrix Placeholder (Next step: adding SerpAPI web search) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
               <h3 className="text-lg font-bold text-gray-800">Global Store & Marketplace Results</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b text-xs text-gray-400 uppercase tracking-wider">
-                      <th className="py-3 px-4">Platform / Store</th>
-                      <th className="py-3 px-4">Listing Price</th>
-                      <th className="py-3 px-4">Converted Value</th>
-                      <th className="py-3 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y text-sm">
-                    {result.globalPrices.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium text-gray-800">{item.store}</td>
-                        <td className="py-3 px-4 text-gray-600">{item.price}</td>
-                        <td className="py-3 px-4 font-semibold text-blue-600">{item.localConverted}</td>
-                        <td className="py-3 px-4 text-right">
-                          <a href={item.link} className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100 transition">
-                            View Listing ↗
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <p className="text-xs text-gray-500">Live international web search and price aggregation are connecting next.</p>
             </div>
           </div>
         )}
