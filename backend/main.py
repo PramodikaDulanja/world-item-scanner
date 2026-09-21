@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from services.ai_service import analyze_item_with_ai
 
 # Load environment variables
 load_dotenv()
@@ -30,23 +31,28 @@ def root():
 @app.post("/api/v1/analyze")
 async def analyze_item(file: UploadFile = File(...)):
     """
-    Receives an uploaded image, processes it through CV/AI,
-    and returns global intelligence data.
+    Receives an uploaded image, processes it through Gemini Vision AI,
+    and returns structured product intelligence data.
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(
-            status_code=400, detail="Invalid file type. Please upload an image.")
+            status_code=400, detail="Invalid file type. Please upload an image."
+        )
 
-    # Read image bytes (prepared for Gemini/OpenAI vision integration)
+    # Read image bytes in memory
     image_bytes = await file.read()
 
-    # TODO: Pass image_bytes to Gemini Vision API & Web Search pipeline
+    # Pass image bytes and mime type to the AI vision service
+    ai_result = analyze_item_with_ai(image_bytes, file.content_type)
+
+    if "error" in ai_result:
+        raise HTTPException(status_code=500, detail=ai_result["error"])
 
     return {
+        "status": "success",
         "filename": file.filename,
         "content_type": file.content_type,
-        "status": "Received successfully. Ready for AI integration!",
-        "size_bytes": len(image_bytes)
+        "data": ai_result
     }
 
 if __name__ == "__main__":
