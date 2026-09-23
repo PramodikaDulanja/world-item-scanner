@@ -3,29 +3,35 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
   const handleFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      if (files.length > 5) {
+        setError("You can upload a maximum of 5 images.");
+        return;
+      }
+      setSelectedFiles(files);
+      setPreviewUrls(files.map(file => URL.createObjectURL(file)));
       setResult(null);
       setError(null);
     }
   };
 
   const handleScan = async () => {
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
     setLoading(true);
     setError(null);
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    selectedFiles.forEach((file) => {
+      formData.append('files', file); // Matches FastAPI List[UploadFile] parameter name 'files'
+    });
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
@@ -36,10 +42,9 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to analyze image');
+        throw new Error(data.detail || 'Failed to analyze images');
       }
 
-      // Maps the live backend JSON fields to your dashboard state
       setResult(data.data);
     } catch (err) {
       setError(err.message);
@@ -58,30 +63,36 @@ export default function Home() {
             Global Visual Intelligence Hub
           </h1>
           <p className="text-gray-600">
-            Snap or upload any physical item to uncover its history, material specs, and global marketplace prices.
+            Upload up to 5 photos of your item (different angles, labels, details) for precise AI identification.
           </p>
         </div>
 
         {/* Upload Card */}
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center justify-center text-center">
-          {!previewUrl ? (
+          {previewUrls.length === 0 ? (
             <label className="w-full flex flex-col items-center px-4 py-8 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-blue-500 transition">
               <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <span className="text-sm font-medium text-gray-700">Drag & drop your item photo here, or <span className="text-blue-600">browse</span></span>
-              <span className="text-xs text-gray-400 mt-1">Supports PNG, JPG, WEBP up to 10MB</span>
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
+              <span className="text-sm font-medium text-gray-700">Drag & drop up to 5 item photos here, or <span className="text-blue-600">browse</span></span>
+              <span className="text-xs text-gray-400 mt-1">Supports PNG, JPG, WEBP (Max 5 images)</span>
+              <input type="file" className="hidden" accept="image/*" multiple onChange={handleFileSelect} />
             </label>
           ) : (
             <div className="space-y-4 w-full flex flex-col items-center">
-              <img src={previewUrl} alt="Item Preview" className="h-64 object-contain rounded-xl border border-gray-200 shadow-sm" />
-              <div className="flex gap-4">
+              {/* Image Previews Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full">
+                {previewUrls.map((url, idx) => (
+                  <img key={idx} src={url} alt={`Preview ${idx + 1}`} className="h-28 w-full object-cover rounded-xl border border-gray-200 shadow-sm" />
+                ))}
+              </div>
+
+              <div className="flex gap-4 pt-2">
                 <button 
-                  onClick={() => { setPreviewUrl(null); setSelectedFile(null); setResult(null); setError(null); }}
+                  onClick={() => { setPreviewUrls([]); setSelectedFiles([]); setResult(null); setError(null); }}
                   className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                 >
-                  Choose Another
+                  Reset Photos
                 </button>
                 <button 
                   onClick={handleScan}
@@ -94,9 +105,9 @@ export default function Home() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                       </svg>
-                      Analyzing with Gemini AI...
+                      Analyzing All Angles...
                     </>
-                  ) : 'Scan Globally'}
+                  ) : `Scan ${selectedFiles.length} Photos Globally`}
                 </button>
               </div>
             </div>
@@ -136,37 +147,50 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Global Pricing Matrix Placeholder (Next step: adding SerpAPI web search) */}
-            {/* Global Pricing Matrix */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
-              <h3 className="text-lg font-bold text-gray-800">Global Store & Marketplace Results</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b text-xs text-gray-400 uppercase tracking-wider">
-                      <th className="py-3 px-4">Platform / Store</th>
-                      <th className="py-3 px-4">Listing Price</th>
-                      <th className="py-3 px-4">Converted Value</th>
-                      <th className="py-3 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y text-sm">
-                    {result.global_prices?.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium text-gray-800">{item.store}</td>
-                        <td className="py-3 px-4 text-gray-600">{item.price}</td>
-                        <td className="py-3 px-4 font-semibold text-blue-600">{item.localConverted}</td>
-                        <td className="py-3 px-4 text-right">
-                          <a href={item.link} target="_blank" rel="noreferrer" className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100 transition">
-                            View Listing ↗
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+{/* Global E-Commerce Marketplace Cards Grid */}
+<div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+  <div className="flex justify-between items-center">
+    <h3 className="text-lg font-bold text-gray-800">Global Marketplace Listings</h3>
+    <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-medium">
+      Live Web Results
+    </span>
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {result.global_prices?.map((item, idx) => (
+      <a 
+        key={idx} 
+        href={item.link} 
+        target="_blank" 
+        rel="noreferrer" 
+        className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md hover:border-blue-400 transition cursor-pointer group"
+      >
+        <div className="space-y-3">
+          {/* Product Thumbnail */}
+          <div className="h-32 w-full bg-white rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center">
+            <img 
+              src={item.thumbnail || "https://via.placeholder.com/150"} 
+              alt={item.store} 
+              className="h-full w-full object-contain p-2 group-hover:scale-105 transition" 
+            />
+          </div>
+          
+          <div>
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{item.store}</span>
+            <h4 className="text-base font-bold text-gray-900 mt-1">{item.price}</h4>
+          </div>
+        </div>
+
+        <div className="pt-4 mt-2 border-t border-gray-200 flex items-center justify-between text-xs text-blue-600 font-medium">
+          <span>Visit Store</span>
+          <span className="group-hover:translate-x-0.5 transition">↗</span>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>
+
+
           </div>
         )}
 

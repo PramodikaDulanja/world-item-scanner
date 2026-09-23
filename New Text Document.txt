@@ -1,1 +1,41 @@
 venv\Scripts\activate.bat
+
+uvicorn main:app --reload --port 8000
+
+
+
+
+
+To build your Global Visual Intelligence & Sourcing Hub, the tech stack needs to handle three heavy pillars: modern user interaction, multimodal AI vision, and real-time cross-border web crawling.
+
+Here is the best, industry-grade tech stack optimized for performance, scalability, and ease of development:
+
+1. Frontend (The User Experience Layer)
+Framework: Next.js (React / App Router) — Perfect for building a fast, SEO-optimized UI with smooth drag-and-drop image upload zones. Server components keep your private API keys secure.
+
+Styling & Components: Tailwind CSS + Shadcn/ui — Allows you to rapidly craft clean dashboard layouts, interactive history cards, and side-by-side global pricing matrices.
+
+2. Backend & API Orchestration (The Brains)
+Language & Framework: Python (FastAPI) — Absolute non-negotiable for this type of project. Python dominates the AI and data ecosystem, and FastAPI is blazing fast, supporting asynchronous requests natively to handle multiple scraping and AI tasks at once.
+
+Data Validation: Pydantic — Built right into FastAPI to validate uploaded image payloads, structure parsed product data, and guarantee clean JSON responses for the frontend.
+
+3. Computer Vision & Multimodal AI Layer
+Visual Recognition & Details: Google Gemini Flash / Pro Vision API or OpenAI GPT-4o — Used for zero-shot item description, reading labels or maker's marks, and generating structured material timelines and histories.
+
+OCR & Text Extraction: Google Cloud Vision API — Excellent for high-speed text extraction, reading serial numbers, or catching fine print on bottles and watch dials.
+
+4. Global Web Scraping & Reverse Image Search
+Reverse Image Lookup: SerpAPI or Google Lens API (via RapidAPI or Apify) — Programmatically takes the uploaded image URL, queries global image search engines, and returns matching e-commerce links and global store URLs.
+
+Page Parsers: BeautifulSoup or Crawl4AI (Python) — Scrapes the target e-commerce pages returned by the search engine to extract active prices, shipping details, and stock availability.
+
+5. Database & Caching
+Primary Database: PostgreSQL (with SQLAlchemy) — Stores user search history, cached item profiles (so you don't waste money re-running AI calls on identical items), and user correction data.
+
+Caching & Rate Limiting: Redis — Essential for managing rate-limits on image uploads and temporarily caching live search results.
+
+Why This Stack Wins
+By pairing a lightweight Next.js frontend with a robust Python FastAPI backend, you get a seamless separation of concerns. The user gets an instant, reactive UI, while Python quietly handles the heavy lifting of talking to computer vision models, parsing global web pages, and structuring multi-currency data.
+
+Would you like to start outlining the database schema or write the initial FastAPI endpoint for handling the image upload?

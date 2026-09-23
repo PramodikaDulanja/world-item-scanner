@@ -9,14 +9,16 @@ SERPAPI_KEY = os.getenv("SERPAPI_API_KEY")
 
 def search_global_marketprices(item_name: str):
     """
-    Searches Google Shopping via SerpAPI using the item name
-    to fetch global store listings and prices.
+    Searches Google Shopping via SerpAPI and extracts active merchant links.
     """
     if not SERPAPI_KEY:
-        # Fallback dummy data if API key isn't provided yet
         return [
-            {"store": "Global Store (Demo)", "price": "$100.00",
-             "localConverted": "$100.00 USD", "link": "#"}
+            {
+                "store": "Global Vintage Hub (Demo)",
+                "price": "$125.00",
+                "thumbnail": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300",
+                "link": "https://www.google.com/shopping"
+            }
         ]
 
     url = "https://serpapi.com/search"
@@ -35,18 +37,25 @@ def search_global_marketprices(item_name: str):
         shopping_results = data.get("shopping_results", [])
         formatted_results = []
 
-        # Parse top 3-4 results
         for item in shopping_results[:4]:
+            # Check for standard link or fallback to product_link
+            destination_link = item.get(
+                "link") or item.get("product_link") or "#"
+
             formatted_results.append({
                 "store": item.get("source", "Online Marketplace"),
                 "price": item.get("price", "Price varies"),
-                # Can add currency conversion logic here later
-                "localConverted": item.get("price", "N/A"),
-                "link": item.get("link", "#")
+                "thumbnail": item.get("thumbnail", "https://via.placeholder.com/150"),
+                "link": destination_link
             })
 
         if not formatted_results:
-            return [{"store": "No direct store matches found", "price": "N/A", "localConverted": "N/A", "link": "#"}]
+            return [{
+                "store": "No direct store matches found",
+                "price": "N/A",
+                "thumbnail": "https://via.placeholder.com/150",
+                "link": "#"
+            }]
 
         return formatted_results
 

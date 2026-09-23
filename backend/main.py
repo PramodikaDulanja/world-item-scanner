@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -30,21 +31,32 @@ def root():
 
 
 @app.post("/api/v1/analyze")
-async def analyze_item(file: UploadFile = File(...)):
+async def analyze_item(files: List[UploadFile] = File(...)):
     """
-    Receives an uploaded image, processes it through Gemini Vision AI,
+    Receives up to 5 uploaded images, processes them through Gemini Vision AI,
     fetches global prices via SerpAPI, and returns structured intelligence data.
     """
-    if not file.content_type.startswith("image/"):
+    if len(files) > 5:
         raise HTTPException(
-            status_code=400, detail="Invalid file type. Please upload an image."
+            status_code=400, detail="Maximum 5 images allowed per scan."
         )
 
-    # Read image bytes in memory
-    image_bytes = await file.read()
+    image_files_data = []
+    for file in files:
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=400, detail=f"Invalid file type for {file.filename}. Please upload images only."
+            )
 
-    # 1. Pass image bytes and mime type to the AI vision service
-    ai_result = analyze_item_with_ai(image_bytes, file.content_type)
+        # Read image bytes in memory
+        image_bytes = await file.read()
+        image_files_data.append({
+            "bytes": image_bytes,
+            "mime_type": file.content_type
+        })
+
+    # 1. Pass all image bytes and mime types to the multi-image AI vision service
+    ai_result = analyze_item_with_ai(image_files_data)
 
     if "error" in ai_result:
         raise HTTPException(status_code=500, detail=ai_result["error"])
@@ -58,8 +70,7 @@ async def analyze_item(file: UploadFile = File(...)):
 
     return {
         "status": "success",
-        "filename": file.filename,
-        "content_type": file.content_type,
+        "total_images_analyzed": len(files),
         "data": ai_result
     }
 
