@@ -37,8 +37,7 @@ def search_global_marketprices(item_name: str):
         shopping_results = data.get("shopping_results", [])
         formatted_results = []
 
-        for item in shopping_results[:4]:
-            # Check for standard link or fallback to product_link
+        for item in shopping_results[:12]:
             destination_link = item.get(
                 "link") or item.get("product_link") or "#"
 

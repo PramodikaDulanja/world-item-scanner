@@ -10,18 +10,21 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
+# Inside backend/services/ai_service.py
+
 def analyze_item_with_ai(image_files_data):
-    """
-    Receives a list of dictionaries containing image bytes and mime types,
-    sends all of them to Gemini Vision AI for multi-angle item recognition.
-    """
     prompt = """
-    Analyze these multiple photos of the same physical item. Use all provided angles and details to return a JSON object with these exact keys:
+    Analyze these photos carefully. 
+    1. First, check if all provided photos depict the EXACT SAME physical item from different angles, labels, or close-ups.
+    2. If the photos show completely different, unrelated items, you MUST return a JSON object with this exact key:
+       {"error": "The uploaded photos appear to show different, unrelated items. Please upload pictures of the same single item."}
+    
+    If they are the same item, return a JSON object with these exact keys:
     - "item_name": A clear, descriptive title of the item.
     - "confidence": Estimated match confidence percentage (e.g., "98.5%").
-    - "era": Estimated manufacturing date or time period (e.g., "1970 - 1980").
-    - "materials": A list of strings detailing the material composition (e.g., ["Stainless Steel", "Polymer"]).
-    - "authenticity_notes": Brief notes on authenticity, style traits, or collector value based on all images.
+    - "era": Estimated manufacturing date or time period.
+    - "materials": A list of strings detailing the material composition.
+    - "authenticity_notes": Brief notes on authenticity or style traits.
     - "description": A concise 2-3 sentence overview of the item's background.
     
     Return ONLY valid raw JSON without any markdown formatting or code blocks.

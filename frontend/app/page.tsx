@@ -62,9 +62,12 @@ export default function Home() {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-600">
             Global Visual Intelligence Hub
           </h1>
-          <p className="text-gray-600">
+          {/* <p className="text-gray-600">
             Upload up to 5 photos of your item (different angles, labels, details) for precise AI identification.
-          </p>
+          </p> */}
+          <p className="text-gray-600">
+  Upload up to 5 photos of the <strong className="text-blue-600">same item</strong> (different angles, labels, details) for precise AI identification.
+</p>
         </div>
 
         {/* Upload Card */}
@@ -150,43 +153,46 @@ export default function Home() {
 {/* Global E-Commerce Marketplace Cards Grid */}
 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
   <div className="flex justify-between items-center">
-    <h3 className="text-lg font-bold text-gray-800">Global Marketplace Listings</h3>
+    <h3 className="text-lg font-bold text-gray-800">Global Marketplace Listings ({result.global_prices?.length || 0})</h3>
     <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-medium">
-      Live Web Results
+      Famous Worldwide Stores
     </span>
   </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    {result.global_prices?.map((item, idx) => (
-      <a 
-        key={idx} 
-        href={item.link} 
-        target="_blank" 
-        rel="noreferrer" 
-        className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md hover:border-blue-400 transition cursor-pointer group"
-      >
-        <div className="space-y-3">
-          {/* Product Thumbnail */}
-          <div className="h-32 w-full bg-white rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center">
-            <img 
-              src={item.thumbnail || "https://via.placeholder.com/150"} 
-              alt={item.store} 
-              className="h-full w-full object-contain p-2 group-hover:scale-105 transition" 
-            />
+  {/* Scrollable container for a large list of cards */}
+  <div className="max-h-[550px] overflow-y-auto pr-2 space-y-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {result.global_prices?.map((item, idx) => (
+        <a 
+          key={idx} 
+          href={item.link} 
+          target="_blank" 
+          rel="noreferrer" 
+          className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md hover:border-blue-400 transition cursor-pointer group"
+        >
+          <div className="space-y-3">
+            {/* Product Thumbnail */}
+            <div className="h-32 w-full bg-white rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center">
+              <img 
+                src={item.thumbnail || "https://via.placeholder.com/150"} 
+                alt={item.store} 
+                className="h-full w-full object-contain p-2 group-hover:scale-105 transition" 
+              />
+            </div>
+            
+            <div>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{item.store}</span>
+              <h4 className="text-base font-bold text-gray-900 mt-1">{item.price}</h4>
+            </div>
           </div>
-          
-          <div>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{item.store}</span>
-            <h4 className="text-base font-bold text-gray-900 mt-1">{item.price}</h4>
-          </div>
-        </div>
 
-        <div className="pt-4 mt-2 border-t border-gray-200 flex items-center justify-between text-xs text-blue-600 font-medium">
-          <span>Visit Store</span>
-          <span className="group-hover:translate-x-0.5 transition">↗</span>
-        </div>
-      </a>
-    ))}
+          <div className="pt-4 mt-2 border-t border-gray-200 flex items-center justify-between text-xs text-blue-600 font-medium">
+            <span>Visit Store</span>
+            <span className="group-hover:translate-x-0.5 transition">↗</span>
+          </div>
+        </a>
+      ))}
+    </div>
   </div>
 </div>
 

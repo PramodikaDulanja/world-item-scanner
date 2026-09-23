@@ -59,7 +59,11 @@ async def analyze_item(files: List[UploadFile] = File(...)):
     ai_result = analyze_item_with_ai(image_files_data)
 
     if "error" in ai_result:
-        raise HTTPException(status_code=500, detail=ai_result["error"])
+        error_msg = ai_result["error"]
+        # If it's a validation error about unrelated items, return 400. Otherwise, return 500.
+        status_code = 400 if "unrelated items" in error_msg.lower(
+        ) or "different" in error_msg.lower() else 500
+        raise HTTPException(status_code=status_code, detail=error_msg)
 
     # 2. Extract item name and fetch global marketplace pricing
     item_name = ai_result.get("item_name", "Unknown Item")
